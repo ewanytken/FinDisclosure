@@ -166,7 +166,7 @@ class QuestionBotCommands(AbstractCommand):
 
             if self.doc_service:
                 question_answer = [(key, value) for key, value in answers.items()]
-                await self.doc_service.save_answers(question_answer)
+                await self.doc_service.save_answers(question_answer, command.args)
 
             if answers:
                 text = "\n".join(f"- {key}: {value}" for key, value in answers.items())

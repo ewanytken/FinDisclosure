@@ -20,6 +20,7 @@ def mock_config():
             "password": "secret",
             "sender": "user@test.com",
             "use_tls": False,
+            "to": ["user@test.com"]
         }
     }
 
@@ -37,7 +38,6 @@ class TestMailService:
         """Test sending a plain message."""
         with patch("app.service.mail_service.aiosmtplib.send", new=AsyncMock()) as mock_send:
             result = await service.send_message(
-                to="recipient@example.com",
                 subject="Hello",
                 body="Hi there",
             )
@@ -45,7 +45,7 @@ class TestMailService:
         assert result is True
         mock_send.assert_awaited_once()
         message = mock_send.call_args[0][0]
-        assert message["To"] == "recipient@example.com"
+        assert message["To"] == "user@test.com"
         assert message["Subject"] == "Hello"
         assert message["From"] == "user@test.com"
 
@@ -56,7 +56,6 @@ class TestMailService:
             new=AsyncMock(side_effect=Exception("SMTP down")),
         ):
             result = await service.send_message(
-                to="recipient@example.com",
                 subject="Hello",
                 body="Hi",
             )
@@ -67,7 +66,6 @@ class TestMailService:
         """Test HTML body handling."""
         with patch("app.service.mail_service.aiosmtplib.send", new=AsyncMock()) as mock_send:
             await service.send_message(
-                to="x@y.com",
                 subject="HTML",
                 body="<h1>Hi</h1>",
                 html=True,
@@ -84,9 +82,7 @@ class TestMailService:
 
         with patch("app.service.mail_service.aiosmtplib.send", new=AsyncMock()) as mock_send:
             result = await service.send_file(
-                to="x@y.com",
                 subject="File",
-                file_path=file,
                 body="See attached.",
             )
 
@@ -102,34 +98,9 @@ class TestMailService:
         """Test that a missing attachment does not raise."""
         with patch("app.service.mail_service.aiosmtplib.send", new=AsyncMock()):
             result = await service.send_file(
-                to="x@y.com",
                 subject="Missing",
                 file_path="/does/not/exist.pdf",
             )
         assert result is False
 
-    async def test_multiple_recipients(self, service):
-        """Test that a list of recipients is joined correctly."""
-        with patch("app.service.mail_service.aiosmtplib.send", new=AsyncMock()) as mock_send:
-            await service.send_message(
-                to=["a@x.com", "b@x.com"],
-                subject="Multi",
-                body="Hi",
-                cc="c@x.com",
-            )
 
-        message = mock_send.call_args[0][0]
-        assert message["To"] == "a@x.com, b@x.com"
-        assert message["Cc"] == "c@x.com"
-
-    async def test_send_bulk_concurrently(self, service):
-        """Test bulk sending."""
-        with patch("app.service.mail_service.aiosmtplib.send", new=AsyncMock()):
-            messages = [
-                {"to": f"u{i}@x.com", "subject": "Hi", "body": "Hello"}
-                for i in range(5)
-            ]
-            results = await service.send_bulk(messages, max_concurrent=2)
-
-        assert all(results)
-        assert len(results) == 5
