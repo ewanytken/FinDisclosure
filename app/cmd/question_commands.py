@@ -161,6 +161,10 @@ class QuestionBotCommands(AbstractCommand):
             try:
                 company_name = command.args
                 answers = await self.company_service.request_to_service(company_name)
+                if not answers:
+                    logger(f"Empty Answer, check remote API")
+                    raise Exception()
+
             except Exception as e:
                 logger(f"Checking company failed: {e}")
 
@@ -172,7 +176,7 @@ class QuestionBotCommands(AbstractCommand):
                 text = "\n".join(f"- {key}: {value}" for key, value in answers.items())
 
                 if self.mail_service:
-                    await self.mail_service.send_message(subject="Company Digest", body=text)
+                    await self.mail_service.send_message(subject=f"{command.args} Анализ", body=text)
 
                 await message.answer(
                     f"✅ Obtain next answers: {text}"

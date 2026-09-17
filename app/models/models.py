@@ -57,3 +57,5 @@ class QuestionModel(Base):
     def get_question(self) -> Optional[str]:
         return self.question
 
+    def set_question(self, question: str) -> None:
+        self.question = question
