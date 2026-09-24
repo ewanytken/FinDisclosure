@@ -1,10 +1,10 @@
 import asyncio
 from pathlib import Path
 from typing import List, Optional, Dict
-
 from aiogram.enums import ParseMode
 from aiogram.filters import Command, CommandObject
 from aiogram.types import Message, BotCommand
+from aiogram.utils.formatting import Text
 
 from app.cmd.abstract_commands import AbstractCommand
 from app.logger.logger_wrapper import LoggerWrapper
@@ -191,7 +191,7 @@ class QuestionBotCommands(AbstractCommand):
                 path_to_file = self.doc_service.get_path_to_file()
                 logger(f"[QuestionBotCommands_c:cmd_check_f:path_to_file_v]: {path_to_file}")
 
-            final_text = "\n".join(f"- {key}: {value}" for key, value in answers.items())
+            final_text = "\n".join(f"⭐ {key}:\n 💎{value}" for key, value in answers.items())
 
             if self.mail_service:
                 if path_to_file:
@@ -200,6 +200,18 @@ class QuestionBotCommands(AbstractCommand):
 
             if answers:
                 for key, value in answers.items():
-                    await message.answer(f"✅ ".join(f"- {key}: {value}"))
-                    await asyncio.sleep(1)
+                    if len(value) >= 4096:
+                        chunks = await self.chinking(value, max_length=4000)
+                        for index, chunk in enumerate(chunks):
+                            await message.answer("✅ ".join(f"⭐ {key}. Part #{index+1}:\n 💎{chunk}\n"))
+                            await asyncio.sleep(1)
+                    else:
+                        await message.answer("✅ ".join(f"⭐ {key}: 💎{value}\n"))
+                        await asyncio.sleep(1)
 
+
+    async def chinking(self, text: str, max_length: int) -> List[str]:
+        chunks: Optional[List[str]] = []
+        for i in range(0, len(text), max_length):
+            chunks.append(text[i:i + max_length])
+        return chunks

@@ -1,0 +1,44 @@
+system:
+  name: "Disclosure-helper"
+  version: "0.1"
+
+telegram:
+  bot_token: ""
+  bot_name: ""
+  allowed_user_id: []
+
+database:
+  url: "sqlite+aiosqlite:///file:mem_db?mode=memory&cache=shared&uri=true"
+
+open_service:
+  model: ""
+  url: ""
+  api_key: ""
+
+
+raw_service:
+  url: ""
+  api_key: ""
+
+
+google_service:
+  model: ""
+  api_key: ""
+
+directory:
+  path: "questions.json"
+
+mail:
+  host: ""
+  port: 465
+  username: ""
+  password: ""
+  sender: ""
+  use_tls: True    # false = STARTTLS on 587; true = implicit TLS on 465. True for yandex.ru
+  to: [""]
+
+doc_writer:
+  output_dir: "./reports"
+
+delay:
+  second: 7

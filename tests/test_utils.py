@@ -1,3 +1,5 @@
+from typing import Optional, List
+
 import pytest
 from pathlib import Path
 import yaml
@@ -19,6 +21,18 @@ class Test:
         print(js)
         for k in js.values():
             print(k)
+
+    async def chinking(self, text: str, max_length: int) -> List[str]:
+        chunks: Optional[List[str]] = []
+        for i in range(0, len(text), max_length):
+            chunks.append(text[i:i + max_length])
+        return chunks
+
+    async def test_chunks(self):
+        text = "sdfsdfsdf" * 10
+        print(f"Result = {len(await self.chinking(text, 4000))}")
+        print(f"Text = {await self.chinking(text, 4000)}")
+
 
     async def test_document_processing3(self):
         dict = {'status': 200, 'code': 'OK',
