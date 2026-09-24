@@ -13,7 +13,6 @@ modules/trash
 modules/trash/vibe_coders_project
 config_test.yaml
 datasets
-config_rus.yaml
 config.yaml
 reports
 reports/**

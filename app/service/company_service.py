@@ -38,12 +38,8 @@ class CompanyService:
             return {}
 
         try:
-            logger(f"[CompanyService_c:request_to_service_f:company_name_v]: {company_name}")
-            # Zero question with 5 astras
-            new_question = self.question_from_db[0].get_question().replace("*****", company_name)
-            self.question_from_db[0].set_question(new_question)
+            await self.insertion_company(company_name)
 
-            logger(f"[CompanyService_c:request_to_service_f:new_question_v]: {self.question_from_db[0].get_question()}")
             logger(f"[CompanyService_c:request_to_service_f:rem_service_v]: {[remote_service for remote_service in self.remote_services]}")
 
             for question in self.question_from_db:
@@ -56,6 +52,17 @@ class CompanyService:
         except Exception as e:
             logger(f"[CompanyService_c:request_to_service_f:answer_err]: {e}")
             return {}
+
+    async def insertion_company(self, company_name: Optional[str]) -> None:
+        logger(f"[CompanyService_c:insertion_company_f:company_name_v]: {company_name}")
+        for question in range(len(self.question_from_db)):
+            new_question = self.question_from_db[question].get_question().replace("*****", company_name)
+            self.question_from_db[question].set_question(new_question)
+            if self.question_from_db[question].get_question().find(company_name) != -1:
+                logger(f"[CompanyService_c:insertion_company_f:new_questions_b]: Question #{question} replaced")
+            else:
+                logger(f"[CompanyService_c:insertion_company_f:new_questions_b]: Question #{question} DON'T replace")
+
 
     async def request_api(self, prompt: Optional[str]) -> Optional[str]:
         answer: Optional[str] = None

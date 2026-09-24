@@ -21,11 +21,18 @@ class DocWriterService:
         self.company_name: Optional[str] = None
         self.output_dir = Path(__file__).parent.parent.parent / reports_path
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.path_to_file: Optional[Path] = None
 
         logger(f"[DocWriterService_c:output_dir_v]: {self.output_dir}")
 
     def set_company_name(self, company_name: Optional[str]):
-        self.company_name = company_name
+        self.company_name = company_name.replace(" ", "_")
+
+    def get_path_to_file(self) -> Optional[Path]:
+        if self.path_to_file:
+            return self.path_to_file
+        else:
+            return None
 
     async def save_answers(self,
         pairs: List[tuple[Optional[str], str]],
@@ -71,7 +78,10 @@ class DocWriterService:
         if not self.company_name.lower().endswith(".docx"):
             self.company_name += ".docx"
 
-        return self.output_dir / self.company_name
+        self.path_to_file = self.output_dir / self.company_name
+
+        logger(f"[DocWriterService_c:_resolve_path_f:path_v]: {self.path_to_file}")
+        return self.path_to_file
 
     @staticmethod
     def _add_title(document: Document, filename: Optional[str]) -> None:

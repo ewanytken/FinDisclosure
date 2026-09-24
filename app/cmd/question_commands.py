@@ -1,3 +1,5 @@
+import asyncio
+from pathlib import Path
 from typing import List, Optional, Dict
 
 from aiogram.enums import ParseMode
@@ -181,17 +183,23 @@ class QuestionBotCommands(AbstractCommand):
             except Exception as e:
                 logger(f"[QuestionBotCommands_c:cmd_check_f:answer_err]: {e}")
 
+            path_to_file: Optional[Path] = None
             if self.doc_service:
                 question_answer_tuple = [(key, value) for key, value in answers.items()]
                 self.doc_service.set_company_name(command.args)
                 await self.doc_service.save_answers(question_answer_tuple)
+                path_to_file = self.doc_service.get_path_to_file()
+                logger(f"[QuestionBotCommands_c:cmd_check_f:path_to_file_v]: {path_to_file}")
+
+            final_text = "\n".join(f"- {key}: {value}" for key, value in answers.items())
+
+            if self.mail_service:
+                if path_to_file:
+                    self.mail_service.set_attachments([path_to_file])
+                await self.mail_service.send_message(subject=f"{command.args} Financial Analysis", body=final_text)
 
             if answers:
-                text = "\n".join(f"- {key}: {value}" for key, value in answers.items())
-
-                if self.mail_service:
-                    await self.mail_service.send_message(subject=f"{command.args} Financial Analysis", body=text)
-
-                await message.answer(f"✅ Obtain next answers: {text}")
-
+                for key, value in answers.items():
+                    await message.answer(f"✅ ".join(f"- {key}: {value}"))
+                    await asyncio.sleep(1)
 

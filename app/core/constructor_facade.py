@@ -52,10 +52,11 @@ class ConstructorFacade:
             self.company_service.set_remote_services(self.remote_services)
             self.company_service.set_question_db(self.questions_list)
 
-            # self.bot_command_question.set_mail_service(self.mail_service)
             self.bot_command_question.set_doc_service(self.doc_service)
+            self.bot_command_question.set_mail_service(self.mail_service)
 
             await self.telegram_connector.run_bot()
+
             logger(f"[ConstructorFacade_c:run_f]: Bot Started")
         except Exception as e:
             logger(f"[ConstructorFacade_c:run_f:run_err]: {e}")
