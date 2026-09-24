@@ -17,9 +17,9 @@ class Utils:
             with open(path, "r", encoding='utf-8') as file:
                 return yaml.safe_load(file)
         except FileNotFoundError as e:
-            logger(f"Config file not found: by path {path}. Stack trace: {e}")
+            logger(f"[Utils_c:get_config_file_f:path_err]: {path}. Stack trace: {e}")
         except Exception as e:
-            logger(f"An error occurred: {e}")
+            logger(f"[Utils_c:get_config_file_f:err]: {e}")
         finally:
             file.close()
 
@@ -27,7 +27,7 @@ class Utils:
     def load_questions(path: str = "questions.json") -> Dict[str, str]:
 
         json_path = Path(__file__).parent.parent.parent/ "dictionary" / path
-        logger(f"Loading dictionary from {json_path}")
+        logger(f"[Utils_c:load_questions_f:json_path_v]: {json_path}")
 
         try:
             with open(json_path, 'r', encoding='utf-8') as file:
@@ -35,9 +35,9 @@ class Utils:
                 return questions_dictionary
 
         except FileNotFoundError as e:
-            logger(f"Dictionary file not found: by path {json_path}. Stack trace: {e}")
+            logger(f"[Utils_c:load_questions_f:json_path_err]: {json_path}. Stack trace: {e}")
         except Exception as e:
-            logger(f"An error occurred: {e}")
+            logger(f"[Utils_c:load_questions_f:err]: {e}")
         finally:
             file.close()
 

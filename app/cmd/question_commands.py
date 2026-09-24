@@ -38,6 +38,7 @@ class QuestionBotCommands(AbstractCommand):
                 BotCommand(command="remove",  description="Remove Question by ID"),
                 BotCommand(command="list",    description="List of Question"),
                 BotCommand(command="find",    description="Find Question by ID"),
+                BotCommand(command="ask",     description="Ask One Question"),
                 BotCommand(command="check",   description="Find Information by Company Name"),
         ]
 
@@ -50,11 +51,12 @@ class QuestionBotCommands(AbstractCommand):
             await message.answer(
                 f"<b>👋Company Disclosure</b>\n\n"
                 f"<b>Commands:</b>\n"
-                f"/add Question        — add new Question\n"
-                f"/remove by ID          — delete by ID\n"
-                f"/find                  — find question by ID\n"
-                f"/check                 — AI check starting\n"
-                f"/list                  — show all question\n",
+                f"/add Question — add new Question\n"
+                f"/remove by ID — delete by ID\n"
+                f"/find — find question by ID\n"
+                f"/check — AI check starting\n"
+                f"/ask — Ask one question\n"
+                f"/list — show all question\n",
 
                 parse_mode=ParseMode.HTML
             )
@@ -64,15 +66,13 @@ class QuestionBotCommands(AbstractCommand):
             await self.authorization.check_authorized_ids(message)
 
             if not command.args:
-                return await message.answer(
-                    "Usage: /add Question\n"
-                )
+                return await message.answer("Usage: /add Question\n")
 
-            logger(f"Current Question: {command.args}")
+            logger(f"[QuestionBotCommands_c:cmd_add_f:question_v]: {command.args}")
             try:
                 await self.repository.add_question_async(command.args)
             except Exception as e:
-                logger(f"Adding question failed: {e}")
+                logger(f"[QuestionBotCommands_c:cmd_add_f]: {e}")
 
             await message.answer(
                 f"✅ Question Added: <b>{command.args}</b>",
@@ -80,15 +80,13 @@ class QuestionBotCommands(AbstractCommand):
             )
 
         @self.dispatcher.message(Command("find"))
-        async def cmd_add(message: Message, command: CommandObject):
+        async def cmd_find(message: Message, command: CommandObject):
             await self.authorization.check_authorized_ids(message)
 
             if not command.args:
-                return await message.answer(
-                    "Usage: /find 1\n"
-                )
+                return await message.answer("Usage: /find 1\n")
 
-            logger(f"Current ID number: {command.args}")
+            logger(f"[QuestionBotCommands_c:cmd_find_f:id_v]: {command.args}")
             id_number = int(command.args)
 
             question: Optional[str] = None
@@ -96,23 +94,19 @@ class QuestionBotCommands(AbstractCommand):
             try:
                 question = await self.repository.find_question_async(id_number)
             except Exception as e:
-                logger(f"Adding question failed: {e}")
+                logger(f"[QuestionBotCommands_c:cmd_find_f:question_err]: {e}")
 
             if question:
-                await message.answer(
-                    f"✅ Found Question: {question}",
-                )
+                await message.answer(f"✅ Found Question: {question}")
 
         @self.dispatcher.message(Command("remove"))
-        async def cmd_add(message: Message, command: CommandObject):
+        async def cmd_remove(message: Message, command: CommandObject):
             await self.authorization.check_authorized_ids(message)
 
             if not command.args:
-                return await message.answer(
-                    "Usage: /remove 1\n"
-                )
+                return await message.answer("Usage: /remove 1\n")
 
-            logger(f"Current ID number: {command.args}")
+            logger(f"[QuestionBotCommands_c:cmd_remove_f:id_v]: {command.args}")
             id_number = int(command.args)
 
             is_question: Optional[bool] = None
@@ -120,7 +114,7 @@ class QuestionBotCommands(AbstractCommand):
             try:
                 is_question = await self.repository.remove_question_async(id_number)
             except Exception as e:
-                logger(f"Removing question failed: {e}")
+                logger(f"[QuestionBotCommands_c:cmd_remove_f:is_question_err]: {e}")
 
             if is_question:
                 await message.answer(
@@ -129,7 +123,7 @@ class QuestionBotCommands(AbstractCommand):
                 )
 
         @self.dispatcher.message(Command("list"))
-        async def cmd_add(message: Message):
+        async def cmd_list(message: Message):
             await self.authorization.check_authorized_ids(message)
 
             question_list: Optional[List] = None
@@ -137,16 +131,36 @@ class QuestionBotCommands(AbstractCommand):
             try:
                 question_list = await self.repository.find_all_questions_async()
             except Exception as e:
-                logger(f"Found all questions failed: {e}")
+                logger(f"[QuestionBotCommands_c:cmd_list_f:question_list_err]: {e}")
 
             if question_list:
-
                 text = "\n".join(f"- {i+1}: {question}"
                           for i, question in enumerate(question_list))
+                await message.answer(f"✅ Obtain next answers:\n {text}")
 
-                await message.answer(
-                    f"✅ Obtain next answers:\n {text}"
-                )
+        @self.dispatcher.message(Command("ask"))
+        async def cmd_ask(message: Message, command: CommandObject):
+            await self.authorization.check_authorized_ids(message)
+
+            if not command.args:
+                return await message.answer("How to use: /ask Your question\n")
+
+            answer: Optional[str] = None
+            try:
+                issue = command.args
+                answer = await self.company_service.request_to_service_ask(issue)
+
+                if not answer:
+                    logger(f"[QuestionBotCommands_c:cmd_ask_f:answer_b]: {answer}")
+                    raise Exception()
+
+            except Exception as e:
+                logger(f"[QuestionBotCommands_c:cmd_ask_f:answer_err]: {e}")
+
+            if answer:
+                await message.answer(f"✅ Obtain next answers: {answer}")
+            else:
+                logger(f"[QuestionBotCommands_c:cmd_ask_f:answer_b]: {False}")
 
         @self.dispatcher.message(Command("check"))
         async def cmd_check(message: Message, command: CommandObject):
@@ -155,31 +169,29 @@ class QuestionBotCommands(AbstractCommand):
             answers:Optional[Dict] = None
 
             if not command.args:
-                return await message.answer(
-                    "How to use: /check CompanyName\n"
-                )
+                return await message.answer("How to use: /check CompanyName\n")
+
             try:
                 company_name = command.args
                 answers = await self.company_service.request_to_service(company_name)
                 if not answers:
-                    logger(f"Empty Answer, check remote API")
+                    logger(f"[QuestionBotCommands_c:cmd_check_f:answer_v]: {answers}")
                     raise Exception()
 
             except Exception as e:
-                logger(f"Checking company failed: {e}")
+                logger(f"[QuestionBotCommands_c:cmd_check_f:answer_err]: {e}")
 
             if self.doc_service:
-                question_answer = [(key, value) for key, value in answers.items()]
-                await self.doc_service.save_answers(question_answer, command.args)
+                question_answer_tuple = [(key, value) for key, value in answers.items()]
+                self.doc_service.set_company_name(command.args)
+                await self.doc_service.save_answers(question_answer_tuple)
 
             if answers:
                 text = "\n".join(f"- {key}: {value}" for key, value in answers.items())
 
                 if self.mail_service:
-                    await self.mail_service.send_message(subject=f"{command.args} Анализ", body=text)
+                    await self.mail_service.send_message(subject=f"{command.args} Financial Analysis", body=text)
 
-                await message.answer(
-                    f"✅ Obtain next answers: {text}"
-                )
+                await message.answer(f"✅ Obtain next answers: {text}")
 
 

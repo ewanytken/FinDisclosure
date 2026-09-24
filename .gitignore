@@ -1,12 +1,10 @@
 .env
 documents
-modules/train_data2.jsonl
-modules
-modules/utilizer.py
 .idea
 .venv
 logs/app.log
 logs
+logs/**
 __pycache__/**
 **/__pycache__/**
 **/**/__pycache__/**
@@ -14,12 +12,9 @@ __pycache__/**
 modules/trash
 modules/trash/vibe_coders_project
 config_test.yaml
-tests/test_remote.py
-ragas-eval-sys
 datasets
 config_rus.yaml
-tests/triplet_graph.graphml
-triplet_graph.graphml
 config.yaml
 reports
+reports/**
 .idea/**

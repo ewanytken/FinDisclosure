@@ -1,9 +1,10 @@
-import asyncio
 import mimetypes
 from email.message import EmailMessage
 from pathlib import Path
 from typing import List, Optional, Union
+
 import aiosmtplib
+
 from app.logger.logger_wrapper import LoggerWrapper
 from app.utils import Utils
 
@@ -15,19 +16,22 @@ class MailService:
         config = Utils.get_config_file()
         mail_cfg = config.get("mail", {})
 
-        self.host: str = mail_cfg.get("host", "localhost")
-        self.port: int = int(mail_cfg.get("port", 587))
+        self.host: str = mail_cfg.get("host", "no_host_config")
+        self.port: int = int(mail_cfg.get("port", 465))
         self.username: Optional[str] = mail_cfg.get("username")
         self.password: Optional[str] = mail_cfg.get("password")
-        self.sender: str = mail_cfg.get("sender", self.username or "noreply@example.com")
-        self.use_tls: bool = bool(mail_cfg.get("use_tls", True))
+        self.sender: str = mail_cfg.get("sender", self.username)
+        self.use_tls: bool = bool(mail_cfg.get("use_tls", False))
         self.to: Union[str, List[str]] = mail_cfg.get("to")
 
         self.attachments: Optional[List[Union[str, Path]]] = None
 
         logger(
-            f"MailService initialized: host={self.host}, port={self.port}, "
-            f"sender={self.sender}, tls={self.use_tls}"
+            f"[MailService_c:initialized]:\n"
+            f"host={self.host},\n"
+            f"port={self.port},\n"
+            f"sender={self.sender},\n"
+            f"tls={self.use_tls}"
         )
 
     def set_attachments(self, attachments: Optional[List[Union[str, Path]]]) -> None:
@@ -46,18 +50,14 @@ class MailService:
                 html=html,
             )
             await self._send(message, timeout=timeout)
-            logger(f"Email sent to {self.to} with subject '{subject}'")
+            logger(f"[MailService_c:send_message_f:to_v]: {self.to} with subject '{subject}'")
             return True
 
         except Exception as e:
-            logger(f"Failed to send email: {e}")
+            logger(f"[MailService_c:send_message_f:_send_err]: {e}")
             return False
 
-    async def send_file(self,
-        subject: str,
-        body: str = "",
-        html: bool = False,
-        timeout: float = 30.0) -> bool:
+    async def send_file(self, subject: str, body: str = "", html: bool = False, timeout: float = 30.0) -> bool:
 
         return await self.send_message(
             subject=subject,
@@ -66,10 +66,7 @@ class MailService:
             timeout=timeout,
         )
 
-    def _build_message(self,
-        subject: str,
-        body: str,
-        html: bool) -> EmailMessage:
+    def _build_message(self, subject: str, body: str, html: bool) -> EmailMessage:
 
         message = EmailMessage()
         message["From"] = self.sender
@@ -84,13 +81,13 @@ class MailService:
 
         if self.attachments:
             for path in self.attachments:
-                self._attach_file(message, Path(path)) # _attach_file work in this way?
+                self._attach_file(message, Path(path))
 
         return message
 
     def _attach_file(self, message: EmailMessage, path: Path) -> None:
         if not path.exists():
-            raise FileNotFoundError(f"Attachment not found: {path}")
+            raise FileNotFoundError(f"[MailService_c:_attach_file_f:path_err]: {path}")
 
         mime_type, _ = mimetypes.guess_type(path.name)
         maintype, subtype = (mime_type or "application/octet-stream").split("/", 1)

@@ -4,3 +4,4 @@ logger = LoggerWrapper()
 
 class NewsService:
     def __init__(self):
+        pass

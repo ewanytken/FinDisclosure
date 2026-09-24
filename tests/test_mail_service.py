@@ -30,7 +30,6 @@ def service(mock_config):
     with patch("app.service.mail_service.Utils.get_config_file", return_value=mock_config):
         yield MailService()
 
-
 @pytest.mark.asyncio
 class TestMailService:
 
@@ -99,7 +98,6 @@ class TestMailService:
         with patch("app.service.mail_service.aiosmtplib.send", new=AsyncMock()):
             result = await service.send_file(
                 subject="Missing",
-                file_path="/does/not/exist.pdf",
             )
         assert result is False
 

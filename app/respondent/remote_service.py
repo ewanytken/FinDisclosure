@@ -9,7 +9,7 @@ from app.utils import Utils
 
 logger = LoggerWrapper()
 
-class RemoteService(AbstractModelExternal):
+class OpenService(AbstractModelExternal):
 
     def __init__(self) -> None:
 
@@ -17,18 +17,18 @@ class RemoteService(AbstractModelExternal):
 
         super().__init__()
 
-        self.set_model_ticket(self.config['remote_service']['model'])
-        self.set_base_url(self.config['remote_service']['url'])
-        self.set_api_key(self.config['remote_service']['api_key'])
+        self.set_model_ticket(self.config.get('open_service', {}).get('model', "NONE"))
+        self.set_base_url(self.config.get('open_service', {}).get('url', "NONE"))
+        self.set_api_key(self.config.get('open_service', {}).get('api_key', "NONE"))
 
-        logger(f"Model: {self.get_model_ticker()}, "
-               f"Url: {self.get_base_url()}, "
-               f"APIKey: {True if self.get_api_key() else False}")
+        logger(f"[OpenService_c:model_v]: {self.get_model_ticker() if not None else 'No model'},\n "
+               f"[OpenService_c:url_v]: {self.get_base_url()},\n "
+               f"[OpenService_c:api_key_v]: {True if self.get_api_key() else False} \n")
 
         self.client = AsyncOpenAI(base_url=self.get_base_url(),
                                   api_key=self.get_api_key())
 
-    async def __aenter__(self) -> "RemoteService":
+    async def __aenter__(self) -> "OpenService":
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:
@@ -44,7 +44,7 @@ class RemoteService(AbstractModelExternal):
             answer = response.choices[0].message.content.strip()
             return answer.strip() if answer else None
         except Exception as e:
-            logger(f"Bad connection to Model Service: {e}")
+            logger(f"[OpenService_c:generate_f:answer_err]: {e}")
 
     async def close(self) -> None:
         await self.client.close()

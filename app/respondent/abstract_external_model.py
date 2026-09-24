@@ -1,7 +1,7 @@
+from abc import ABC, abstractmethod
 from typing import Optional
 
-
-class AbstractModelExternal:
+class AbstractModelExternal(ABC):
 
     def __init__(self) -> None:
         self.model_ticket: Optional[str] = ""
@@ -26,3 +26,10 @@ class AbstractModelExternal:
     def get_api_key(self) -> Optional[str]:
         return self.api_key
 
+    @abstractmethod
+    async def generate(self, prompt: Optional[str], **kwargs) -> str:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def close(self) -> None:
+        raise NotImplementedError

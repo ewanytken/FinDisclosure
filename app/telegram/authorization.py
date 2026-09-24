@@ -19,18 +19,18 @@ class AuthorizationBot:
         try:
             self.authorized_ids = set(self.config.get("telegram", {}).get("allowed_user_ids", []))
         except Exception as e:
-            logger(f"Install Allowed Users Ids Exception: {e}")
+            logger(f"[AuthorizationBot_c:install_authorized_ids_f:authorized_ids_err]: {e}")
 
     def _is_authorized(self, user: Optional[User]) -> bool:
         if not user:
             return False
         try:
             if not self.authorized_ids:
-                logger("Mode without user check")
+                logger("[AuthorizationBot_c:_is_authorized_f:authorized_b]: Use without authorized_ids")
                 return True
             return user.id in self.authorized_ids
         except Exception as e:
-            logger(f"Authorization Exception: {e}")
+            logger(f"[AuthorizationBot_c:_is_authorized_f:authorized_err]: {e}")
             return False
 
     async def check_authorized_ids(self, message: Message):
