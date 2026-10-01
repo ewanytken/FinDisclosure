@@ -1,7 +1,8 @@
 import unittest
 from unittest import IsolatedAsyncioTestCase
 from app.logger.logger_wrapper import LoggerWrapper
-from app.models.db_setup import DataBaseService, QuestionRepository
+from app.models.db_setup import DataBaseService
+from app.repository.question_repo import QuestionRepository
 
 logger = LoggerWrapper()
 
