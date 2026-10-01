@@ -1,0 +1,15 @@
+# Build artifacts & secrets — never commit.
+# Keep the repo's existing .gitignore entries and add docker-specific ones.
+
+# Docker runtime secrets (NEVER commit real credentials)
+.env
+*.env
+!*.env.example
+
+# Generated at container start; do not bake into image
+config.yaml
+
+# Docker build cache / volumes
+reports/
+logs/
+documents/

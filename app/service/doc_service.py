@@ -39,7 +39,7 @@ class DocWriterService:
         metadata: Optional[Dict[str, str]] = None) -> Optional[Path]:
 
         if not self.company_name:
-            self.company_name = "DEFAULT_COMPANY"
+            self.company_name = "COMPANY_NOT_SPECIFIED"
 
         try:
             file_path = self._resolve_path()
@@ -57,28 +57,32 @@ class DocWriterService:
         pairs: List[tuple[Optional[str], str]],
         metadata: Optional[Dict[str, str]]) -> Document:
 
+        logger(f"[DocWriterService_c:_build_document_f:pairs_v]: length - {len(pairs)}")
         document = Document()
+        try:
+            self._add_title(document, self.company_name)
+            if metadata:
+                self._add_metadata(document, metadata)
 
-        self._add_title(document, self.company_name)
-        if metadata:
-            self._add_metadata(document, metadata)
+            for index, (question, answer) in enumerate(pairs, start=1):
+                if question:
+                    self._add_question(document, index, question)
+                self._add_answer(document, answer)
 
-        for index, (question, answer) in enumerate(pairs, start=1):
-            if question:
-                self._add_question(document, index, question)
-            self._add_answer(document, answer)
-
-        return document
+            return document
+        except Exception as e:
+            logger(f"[DocWriterService_c:_build_document_f:document_err]: {e}")
+            return None
 
     def _resolve_path(self) -> Path:
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.company_name = f"{self.company_name}_{timestamp}"
+        company_name = f"{self.company_name}_{timestamp}"
 
-        if not self.company_name.lower().endswith(".docx"):
-            self.company_name += ".docx"
+        if not company_name.lower().endswith(".docx"):
+            company_name += ".docx"
 
-        self.path_to_file = self.output_dir / self.company_name
+        self.path_to_file = self.output_dir / company_name
 
         logger(f"[DocWriterService_c:_resolve_path_f:path_v]: {self.path_to_file}")
         return self.path_to_file

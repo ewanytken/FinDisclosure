@@ -1,0 +1,85 @@
+# =============================================================================
+# docker-compose.yml — FinDisclosure
+#
+# All runtime parameters are supplied as environment variables. The container
+# entrypoint (docker-entrypoint.sh) renders them into /app/config.yaml before
+# starting main.py, so you can change any value (incl. which remote service is
+# used) by editing .env — no rebuild required.
+#
+# Quick start:
+#   1. cp .env.example .env   &&  fill in real values
+#   2. docker compose up --build -d
+#   3. docker compose logs -f
+#
+# To switch the active remote service at runtime, edit .env:
+#     REMOTE_SERVICE=open            # use only the OpenAI-compatible service
+#     REMOTE_SERVICE=raw             # default custom HTTP service
+#     REMOTE_SERVICE=google          # Google Gemini
+#     REMOTE_SERVICE=open,google     # both, in order
+#   then: docker compose up -d
+# =============================================================================
+
+services:
+  findisclosure:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: findisclosure:latest
+    container_name: findisclosure
+    restart: unless-stopped
+
+    # Pull every variable from .env. docker-compose automatically makes them
+    # available to the container, and the entrypoint maps each one into the
+    # generated config.yaml.
+    env_file:
+      - .env
+
+    # These are the knobs you are most likely to tweak at deploy time.
+    # They override the same keys from .env (compose-level wins).
+    environment:
+      REMOTE_SERVICE: ${REMOTE_SERVICE:-raw}
+      DATABASE_URL: ${DATABASE_URL:-sqlite+aiosqlite:///file:mem_db?mode=memory&cache=shared&uri=true}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_BOT_NAME: ${TELEGRAM_BOT_NAME:-}
+      TELEGRAM_ALLOWED_USER_ID: ${TELEGRAM_ALLOWED_USER_ID:-}
+
+      # Remote-service credentials (only the ones you activate via
+      # REMOTE_SERVICE actually need to be filled in).
+      OPEN_SERVICE_MODEL: ${OPEN_SERVICE_MODEL:-}
+      OPEN_SERVICE_URL: ${OPEN_SERVICE_URL:-}
+      OPEN_SERVICE_API_KEY: ${OPEN_SERVICE_API_KEY:-}
+      RAW_SERVICE_MODEL: ${RAW_SERVICE_MODEL:-}
+      RAW_SERVICE_URL: ${RAW_SERVICE_URL:-}
+      RAW_SERVICE_API_KEY: ${RAW_SERVICE_API_KEY:-}
+      GOOGLE_SERVICE_MODEL: ${GOOGLE_SERVICE_MODEL:-}
+      GOOGLE_SERVICE_API_KEY: ${GOOGLE_SERVICE_API_KEY:-}
+
+      # Mail / output
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_SENDER: ${MAIL_SENDER:-}
+      MAIL_USE_TLS: ${MAIL_USE_TLS:-true}
+      MAIL_TO: ${MAIL_TO:-}
+      DOC_OUTPUT_DIR: ${DOC_OUTPUT_DIR:-./reports}
+      DIRECTORY_PATH: ${DIRECTORY_PATH:-questions.json}
+
+    volumes:
+      # Persist generated .docx reports outside the container.
+      - ./reports:/app/reports
+      # Persist application logs.
+      - ./logs:/app/logs
+      # Optional: bind-mount a custom questions.json dictionary.
+      - ./dictionary:/app/dictionary:ro
+
+    # The bot uses long-polling (no inbound port), so we don't publish any.
+    # If you later add an HTTP health endpoint, map it here.
+    # ports:
+    #   - "8080:8080"
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

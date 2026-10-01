@@ -87,7 +87,10 @@ class MailService:
 
     def _attach_file(self, message: EmailMessage, path: Path) -> None:
         if not path.exists():
-            raise FileNotFoundError(f"[MailService_c:_attach_file_f:path_err]: {path}")
+            logger(f"[MailService_c:attach_file_f:path_to_attach_err]: {path}")
+            with open(path, "w") as file:
+                file.write("\nCheck attachment. File don't exists.")
+                file.close()
 
         mime_type, _ = mimetypes.guess_type(path.name)
         maintype, subtype = (mime_type or "application/octet-stream").split("/", 1)

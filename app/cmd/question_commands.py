@@ -167,6 +167,7 @@ class QuestionBotCommands(AbstractCommand):
         @self.dispatcher.message(Command("check"))
         async def cmd_check(message: Message, command: CommandObject):
             await self.authorization.check_authorized_ids(message)
+            await message.answer(f"Start Checking {command.args}")
 
             answers:Optional[Dict] = None
 
@@ -202,11 +203,14 @@ class QuestionBotCommands(AbstractCommand):
                 for key, value in answers.items():
                     if len(value) >= 4096:
                         chunks = await self.chinking(value, max_length=4000)
+                        logger(f"[QuestionBotCommands_c:cmd_check_f:chunks_vl]: {len(chunks)}")
                         for index, chunk in enumerate(chunks):
-                            await message.answer("✅ ".join(f"⭐ {key}. Part #{index+1}:\n 💎{chunk}\n"))
+                            text = f"⭐ {key}. Part #{index+1}\n 💎{chunk}\n"
+                            await message.answer(text)
                             await asyncio.sleep(1)
                     else:
-                        await message.answer("✅ ".join(f"⭐ {key}: 💎{value}\n"))
+                        text = f"⭐ {key}\n 💎{value}\n"
+                        await message.answer(text)
                         await asyncio.sleep(1)
 
 

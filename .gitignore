@@ -16,3 +16,5 @@ config.yaml
 reports
 reports/**
 .idea/**
+docker-entrypoint.sh
+docker-compose.yml

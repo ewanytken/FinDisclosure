@@ -29,7 +29,7 @@ class Test:
         return chunks
 
     async def test_chunks(self):
-        text = "sdfsdfsdf" * 10
+        text = "sdfsdfsdf" * 10000
         print(f"Result = {len(await self.chinking(text, 4000))}")
         print(f"Text = {await self.chinking(text, 4000)}")
 
@@ -60,3 +60,5 @@ class Test:
             f.write("Your document content goes here.")
 
         print(f"Folder and file successfully saved to: {file_to_save}")
+
+
