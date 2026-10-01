@@ -202,7 +202,7 @@ class QuestionBotCommands(AbstractCommand):
             if answers:
                 for key, value in answers.items():
                     if len(value) >= 4096:
-                        chunks = await self.chinking(value, max_length=4000)
+                        chunks = await self.chunking(value, max_length=4000)
                         logger(f"[QuestionBotCommands_c:cmd_check_f:chunks_vl]: {len(chunks)}")
                         for index, chunk in enumerate(chunks):
                             text = f"⭐ {key}. Part #{index+1}\n 💎{chunk}\n"
@@ -214,7 +214,7 @@ class QuestionBotCommands(AbstractCommand):
                         await asyncio.sleep(1)
 
 
-    async def chinking(self, text: str, max_length: int) -> List[str]:
+    async def chunking(self, text: str, max_length: int) -> List[str]:
         chunks: Optional[List[str]] = []
         for i in range(0, len(text), max_length):
             chunks.append(text[i:i + max_length])

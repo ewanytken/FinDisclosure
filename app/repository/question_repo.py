@@ -22,9 +22,9 @@ class QuestionRepository(AbstractRepository):
                 session.add(question_obj)
                 await session.flush()
                 await session.refresh(question_obj)
-                logger(f"Question added: {question_obj}")
+                logger(f"[QuestionRepository_c:add_question_async_f:question_v]: {question_obj}")
         except Exception as e:
-            logger(f"Error added question: {e}")
+            logger(f"[QuestionRepository_c:add_question_async_f:add_question_err]: {e}")
 
     async def find_question_async(self, id_question: Optional[int]) -> Optional[QuestionModel]:
         try:
@@ -33,7 +33,7 @@ class QuestionRepository(AbstractRepository):
                 result = await session.execute(statement)
                 return result.scalar_one_or_none()
         except Exception as e:
-            logger(f"Question find error: {e}")
+            logger(f"[QuestionRepository_c:find_question_async_f:find_question_err]: {e}")
             return None
 
     async def find_all_questions_async(self) -> List[QuestionModel]:
@@ -43,7 +43,7 @@ class QuestionRepository(AbstractRepository):
                 result = await session.execute(statement)
                 return list(result.scalars().all())
         except Exception as e:
-            logger(f"Questions list error: {e}")
+            logger(f"[QuestionRepository_c:find_all_questions_async_f:find_all_questions_err]: {e}")
             return []
 
     async def remove_question_async(self, id_question: Optional[int]) -> bool:
@@ -57,7 +57,7 @@ class QuestionRepository(AbstractRepository):
                     return True
                 return False
         except Exception as e:
-            logger(f"Question remove error: {e}")
+            logger(f"[QuestionRepository_c:remove_question_async_f:remove_question_err]: {e}")
             return False
 
     async def seed_questions(self) -> None:
@@ -67,15 +67,15 @@ class QuestionRepository(AbstractRepository):
 
                 result = await session.execute(select(QuestionModel).limit(1))
                 if result.scalar_one_or_none() is not None:
-                    logger("Questions already seeded, skipping")
+                    logger(f"[QuestionRepository_c:seed_questions_f:init_questions_repeat]: Questions already seeded, skipping")
                     return
 
                 for question in INITIAL_QUESTIONS.values():
                     session.add(QuestionModel(question=question))
 
                 await session.flush()
-                logger(f"Seeded {len(INITIAL_QUESTIONS)} questions")
+                logger(f"[QuestionRepository_c:seed_questions_f:questions_l]: {len(INITIAL_QUESTIONS)} questions")
 
         except Exception as e:
-            logger(f"Question seeding error: {e}")
+            logger(f"[QuestionRepository_c:seed_questions_f:init_questions_err]: {e}")
 

@@ -10,16 +10,16 @@ telegram:
 database:
   url: "sqlite+aiosqlite:///file:mem_db?mode=memory&cache=shared&uri=true"
 
+active_remote_services: ["raw"]
+
 open_service:
   model: ""
   url: ""
   api_key: ""
 
-
 raw_service:
   url: ""
   api_key: ""
-
 
 google_service:
   model: ""

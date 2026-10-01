@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 
 """
-Auxiliary logger without Console output. Save to logs/auxiliary.log
+System logger without Console output. Save to logs/system.log
 """
 
 class LoggerSystem:
